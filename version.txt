@@ -1,0 +1,2 @@
+1.0.0
+Initial release of the MTAP HR Letter Platform.

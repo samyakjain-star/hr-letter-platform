@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { background: #071426; color: #eef4ff; overflow: hidden; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+}
+
+@layer components {
+  /* ── Shell ─────────────────────────────────────── */
+  .shell { @apply flex h-full overflow-hidden; }
+
+  /* ── Sidebar ───────────────────────────────────── */
+  .sidebar {
+    @apply flex flex-col w-72 min-w-[200px] max-w-xs bg-[#071426] border-r border-white/[0.07] overflow-hidden;
+  }
+  .sidebar-tab {
+    @apply flex-1 py-2.5 text-xs font-semibold tracking-wide uppercase text-shell-muted
+           transition-colors hover:text-shell-text;
+  }
+  .sidebar-tab.active {
+    @apply text-shell-text border-b-2 border-brand-blue;
+  }
+
+  /* ── Left panel items ──────────────────────────── */
+  .person-row {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer
+           text-sm text-shell-muted hover:bg-white/[0.05] hover:text-shell-text
+           transition-colors;
+  }
+  .person-row.active { @apply bg-brand-blue/20 text-shell-text; }
+
+  .doc-row {
+    @apply flex items-center gap-2 pl-8 pr-3 py-1.5 rounded cursor-pointer
+           text-xs text-shell-muted hover:bg-white/[0.04] hover:text-shell-text
+           transition-colors;
+  }
+  .doc-row.active { @apply text-brand-blue; }
+
+  /* ── Canvas ────────────────────────────────────── */
+  .canvas-area {
+    @apply flex-1 bg-canvas-bg overflow-auto flex flex-col items-center py-8;
+  }
+
+  /* A4 paper simulation */
+  .a4-paper {
+    width: 210mm;
+    min-height: 297mm;
+    @apply bg-white shadow-paper mx-auto mb-8 relative flex flex-col;
+    font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+    color: #111;
+  }
+
+  /* ── Inline editable field ─────────────────────── */
+  .field-input {
+    @apply border-0 border-b border-dotted border-brand-blue/40 bg-transparent
+           focus:outline-none focus:border-brand-blue px-0 py-0.5
+           text-inherit font-inherit
+           transition-colors placeholder-gray-400/60;
+  }
+
+  /* ── Toolbar ───────────────────────────────────── */
+  .topbar {
+    @apply h-12 flex items-center gap-3 px-4
+           bg-[#0b1d3a] border-b border-white/[0.07] shrink-0;
+    -webkit-app-region: drag;
+  }
+  .topbar > * { -webkit-app-region: no-drag; }
+
+  /* ── Buttons ───────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium
+           transition-colors cursor-pointer select-none;
+  }
+  .btn-primary   { @apply bg-brand-blue text-white hover:bg-blue-600; }
+  .btn-success   { @apply bg-brand-green text-white hover:bg-green-600; }
+  .btn-ghost     { @apply bg-white/[0.06] text-shell-text hover:bg-white/[0.12]; }
+  .btn-danger    { @apply bg-brand-red text-white hover:bg-red-600; }
+  .btn-sm        { @apply px-2 py-1 text-xs; }
+
+  /* ── Badges ────────────────────────────────────── */
+  .badge-pending  { @apply text-xs px-2 py-0.5 rounded-full bg-white/10 text-shell-muted; }
+  .badge-sending  { @apply text-xs px-2 py-0.5 rounded-full bg-brand-orange/20 text-brand-orange; }
+  .badge-sent     { @apply text-xs px-2 py-0.5 rounded-full bg-brand-green/20 text-brand-green; }
+  .badge-failed   { @apply text-xs px-2 py-0.5 rounded-full bg-brand-red/20 text-brand-red; }
+
+  /* ── Modal ─────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/60 flex items-center justify-center z-50;
+  }
+  .modal-box {
+    @apply bg-[#0f2744] border border-white/10 rounded-xl shadow-2xl w-full max-w-lg p-6;
+  }
+
+  /* ── Form inputs (dark theme) ──────────────────── */
+  .input {
+    @apply w-full bg-white/[0.06] border border-white/10 rounded-lg px-3 py-2
+           text-sm text-shell-text placeholder-shell-muted
+           focus:outline-none focus:border-brand-blue transition-colors;
+  }
+  .label { @apply block text-xs font-medium text-shell-muted mb-1.5; }
+
+  /* ── MTAP letter footer bar ────────────────────── */
+  .letter-footer-bar {
+    height: 10px;
+    display: flex;
+  }
+  .letter-footer-bar span { flex: 1; }
+  .lfb-red    { background: #E53935; }
+  .lfb-orange { background: #FB8C00; }
+  .lfb-green  { background: #43A047; }
+  .lfb-blue   { background: #1E88E5; }
+}
+
+/* Salary table inside A4 */
+.salary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+}
+.salary-table td {
+  border: 1px solid #000;
+  padding: 3px 7px;
+  vertical-align: middle;
+}
+.salary-table .num { text-align: right; width: 88px; }
+.salary-table .bold td { font-weight: 700; }
+.salary-table .section-header td { font-weight: 700; }
+.salary-table .blank-row td { height: 7px; padding: 0; }

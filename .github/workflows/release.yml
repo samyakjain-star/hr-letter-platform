@@ -26,9 +26,9 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            build_cmd: npm run dist:win
+            build_cmd: npm run build && npm run dist:win
           - os: macos-latest
-            build_cmd: npm run dist:mac
+            build_cmd: npm run build && npm run dist:mac
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

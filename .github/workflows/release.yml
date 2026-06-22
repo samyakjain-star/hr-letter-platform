@@ -62,7 +62,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Collect platform installers (ignore blockmaps / unpacked dirs).
-          assets=$(find dist -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dmg' \) )
-          echo "Uploading:"; echo "$assets"
-          gh release upload "${{ steps.tag.outputs.value }}" $assets --clobber
+          # Upload each installer (filenames contain spaces — handle with -print0).
+          find dist -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dmg' \) -print0 |
+            while IFS= read -r -d '' f; do
+              echo "Uploading: $f"
+              gh release upload "${{ steps.tag.outputs.value }}" "$f" --clobber
+            done

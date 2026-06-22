@@ -1,0 +1,68 @@
+name: Build & Release
+
+# Builds the Windows .exe and macOS .dmg installers on native runners and
+# attaches them to the GitHub Release for the tag.
+#
+# Trigger either by pushing a version tag:    git tag v1.0.1 && git push --tags
+# or manually from the Actions tab (workflow_dispatch) with a tag like v1.0.0.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to build & attach installers to (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            build_cmd: npm run dist:win
+          - os: macos-latest
+            build_cmd: npm run dist:mac
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installer
+        run: ${{ matrix.build_cmd }}
+        env:
+          # No code-signing identity in CI; produce unsigned builds.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Resolve release tag
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload installers to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Collect platform installers (ignore blockmaps / unpacked dirs).
+          assets=$(find dist -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dmg' \) )
+          echo "Uploading:"; echo "$assets"
+          gh release upload "${{ steps.tag.outputs.value }}" $assets --clobber

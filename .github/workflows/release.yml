@@ -62,9 +62,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          tag="${{ steps.tag.outputs.value }}"
+          # Ensure the release exists (tag pushes don't create one on their own).
+          gh release view "$tag" >/dev/null 2>&1 || \
+            gh release create "$tag" --title "$tag" --notes "Automated release for $tag. See version.txt for changes."
           # Upload each installer (filenames contain spaces — handle with -print0).
           find dist -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dmg' \) -print0 |
             while IFS= read -r -d '' f; do
               echo "Uploading: $f"
-              gh release upload "${{ steps.tag.outputs.value }}" "$f" --clobber
+              gh release upload "$tag" "$f" --clobber
             done

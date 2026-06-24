@@ -95,7 +95,7 @@ export function registerStorageHandlers(ipcMain: IpcMain): void {
         pfPref: '12%',
         floor15k: false,
       },
-      appVersion: '1.0.0',
+      appVersion: '1.0.1',
       pdfFilenamePattern: '{{EMPLOYEE_NAME}}_{{DOCUMENT_TYPE}}_{{DATE}}'
     })
   )

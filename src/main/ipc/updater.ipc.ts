@@ -1,4 +1,4 @@
-import { IpcMain } from 'electron'
+import { IpcMain, app } from 'electron'
 import https from 'https'
 
 const GH_OWNER = 'samyakjain-star'
@@ -55,7 +55,10 @@ function isNewer(latest: string, current: string): boolean {
 }
 
 export function registerUpdaterHandlers(ipcMain: IpcMain): void {
-  ipcMain.handle('updater:check', async (_e, currentVersion: string) => {
+  ipcMain.handle('updater:check', async () => {
+    // Compare against the real running build, not a value the renderer persisted
+    // (settings.appVersion can go stale across upgrades).
+    const currentVersion = app.getVersion()
     try {
       const raw = await fetchText(VERSION_URL)
       // Expected format: "1.2.0\nChangelog line 1\nChangelog line 2"

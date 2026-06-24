@@ -3,7 +3,7 @@ import type { Settings, UpdateInfo } from '../types'
 
 const DEFAULT_SETTINGS: Settings = {
   calculator: { basicPct: 50, hraRate: 0.50, pfPref: '12%', floor15k: false },
-  appVersion: '1.0.0',
+  appVersion: '1.0.1',
   pdfFilenamePattern: '{{EMPLOYEE_NAME}}_{{DOCUMENT_TYPE}}_{{DATE}}'
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "hr-letter-platform",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MTAP HR Letter Platform — local-only appraisal letter generation and dispatch",
   "main": "./out/main/index.js",
   "author": "MTAP Technologies",

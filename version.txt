@@ -1,2 +1,4 @@
-1.0.0
-Initial release of the MTAP HR Letter Platform.
+1.0.1
+Removed the email/SMTP sending feature.
+Added delete buttons for people and documents, and an update button in the top bar.
+Salary data is now encrypted on disk; hardened the app sandbox.

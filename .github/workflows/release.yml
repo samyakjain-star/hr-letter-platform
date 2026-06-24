@@ -19,8 +19,31 @@ on:
 permissions:
   contents: write
 
+# The exact commit to release: the pushed tag, or the tag given to a manual run.
+# Both the test gate and the build check out THIS ref, so the security suite
+# always runs against the same code that gets packaged — never main or an
+# older version.
+env:
+  RELEASE_REF: ${{ github.event.inputs.tag || github.ref_name }}
+
 jobs:
+  # Gate: the security + unit suite must pass on the tagged code before any
+  # installer is built. If this fails, no .exe/.dmg is produced or uploaded.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
   build:
+    needs: test
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +55,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
 
       - uses: actions/setup-node@v4
         with:

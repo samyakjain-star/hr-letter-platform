@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { join } from 'path'
 import { registerStorageHandlers } from './ipc/storage.ipc'
 import { registerUpdaterHandlers } from './ipc/updater.ipc'
+import { isSafeExternalUrl } from './security'
 import { registerPdfHandlers } from './ipc/pdf.ipc'
 
 let mainWindow: BrowserWindow | null = null
@@ -33,7 +34,7 @@ function createWindow(): void {
   // Only ever hand https URLs to the OS shell. Without this, an injected
   // window.open() could pass file:// or a custom protocol handler to the OS.
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    if (/^https:\/\//i.test(details.url)) shell.openExternal(details.url)
+    if (isSafeExternalUrl(details.url)) shell.openExternal(details.url)
     return { action: 'deny' }
   })
 

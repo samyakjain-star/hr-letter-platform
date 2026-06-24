@@ -12,7 +12,7 @@ import { usePeopleStore } from './store/people.store'
 import { useTemplatesStore } from './store/templates.store'
 import { useSettingsStore } from './store/settings.store'
 import { generatePdf } from './lib/pdf'
-import { buildSystemFields, mergeFields, resolveVariables } from './lib/variableResolver'
+import { buildSystemFields, mergeFields, resolveVariables, sanitizeFilename } from './lib/variableResolver'
 import { toLetterFields } from './lib/calculator'
 import type { Person } from './types'
 
@@ -85,7 +85,7 @@ export default function App() {
     const sysFields = buildSystemFields(activePerson, activeDoc.name)
     const allFields = mergeFields(sysFields, {}, activeDoc.fields)
     const pattern = settings.settings.pdfFilenamePattern
-    const filename = resolveVariables(pattern, allFields).replace(/[/\\:*?"<>|]/g, '_') + '.pdf'
+    const filename = sanitizeFilename(resolveVariables(pattern, allFields)) + '.pdf'
 
     await generatePdf(el as HTMLElement, filename)
   }

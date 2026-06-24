@@ -2,6 +2,12 @@ import type { Person } from '../types/index'
 
 const VAR_PATTERN = /\{\{([^}]+)\}\}/g
 
+/** Strip path separators and reserved characters so a resolved filename can
+ *  never escape the chosen save directory (path-traversal safe). */
+export function sanitizeFilename(name: string): string {
+  return name.replace(/[/\\:*?"<>|]/g, '_').replace(/\.\.+/g, '_')
+}
+
 export function resolveVariables(template: string, fields: Record<string, string>): string {
   const normalizedFields: Record<string, string> = {}
   for (const key of Object.keys(fields)) {

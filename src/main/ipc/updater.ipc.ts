@@ -42,7 +42,7 @@ function fetchText(url: string, redirectsLeft = 3): Promise<string> {
 }
 
 /** Compare dotted numeric versions. Returns true if `latest` > `current`. */
-function isNewer(latest: string, current: string): boolean {
+export function isNewer(latest: string, current: string): boolean {
   const a = latest.split('.').map((n) => parseInt(n, 10) || 0)
   const b = current.split('.').map((n) => parseInt(n, 10) || 0)
   const len = Math.max(a.length, b.length)

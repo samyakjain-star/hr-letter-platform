@@ -1,78 +1,16 @@
-/** Default MTAP Appraisal Letter HTML — pre-loaded as the seed template.
- *  This is the FULL 3-page document (cover letter, Annexure 1 salary table,
- *  bonus & statutory note). Variables follow {{KEY}} syntax.
+/** Default MTAP Appraisal Letter HTML — the FULL 3-page document (cover letter,
+ *  Annexure 1 salary table, bonus & statutory note). Variables follow {{KEY}}.
  *
- *  The markup is self-contained: a scoped <style> block (all selectors prefixed
- *  `appr-`) defines the A4 page sheets, salary table and footer so the same HTML
- *  renders identically in the document canvas, the template-editor preview and
- *  the generated PDF. */
+ *  Brand chrome (logo, footer, scoped styles, page/wrap helpers) is shared via
+ *  templateShared so every stock letter renders with an identical frame. */
 
-import { MTAP_LOGO_DATA_URI } from './logoAsset'
+import { page, wrapDoc, STOCK_TPL_REV } from './templateShared'
 
-const MTAP_LOGO = `<img src="${MTAP_LOGO_DATA_URI}" alt="MTAP Technologies" style="width:185px;height:auto;display:block;" />`
+/** Kept in sync with the shared rev so assigned appraisal docs auto-upgrade
+ *  (see migrations in people.store / templates.store). */
+export const APPRAISAL_TPL_REV = STOCK_TPL_REV
 
-const FOOTER = `
-  <div class="appr-footer">
-    <div class="appr-bar"><span style="background:#f9a924;flex:41.7"></span><span style="background:#56b949;flex:29"></span><span style="background:#4266a4;flex:21.5"></span><span style="background:#eb2127;flex:7.6"></span></div>
-    <div class="appr-finfo">
-      <div class="appr-fcompany">MTAP Technologies Private Limited</div>
-      <div class="appr-faddr">Ground Floor, Ambit IT Park, Ambattur Industrial Estate, Ambattur, Chennai – 600058, Tamil Nadu.</div>
-      <div class="appr-fcin">CIN: U72900TN2013PTC089299; Phone: +91-80-71190000, +91-80-46808888; Website: www.mtap.in</div>
-    </div>
-  </div>`
-
-const STYLES = `
-  <style>
-    .appr-doc, .appr-doc * { box-sizing: border-box; }
-    .appr-doc { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color:#111; }
-    .appr-page {
-      width: 210mm; min-height: 297mm; background:#fff; margin:0 auto;
-      padding: 16mm 22mm 0; display:flex; flex-direction:column;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-    }
-    .appr-page + .appr-page { margin-top: 22px; }
-    .appr-printing .appr-page { box-shadow:none; }
-    .appr-printing .appr-page + .appr-page { margin-top: 0; }
-    .appr-logo { margin-bottom: 18px; }
-    .appr-body { font-size: 10.5pt; line-height: 1.55; flex: 1; }
-    .appr-body p { font-size: 10.5pt; }
-    .appr-ref { margin-bottom: 22px; }
-    .appr-conf { text-align:center; margin-bottom: 26px; }
-    .appr-emp { margin-bottom: 22px; }
-    .appr-emp p { font-weight: 700; }
-    .appr-salutation { margin-bottom: 16px; }
-    .appr-para { text-align: justify; margin-bottom: 18px; }
-    .appr-closing { margin-top: 28px; }
-    .appr-sig-spacer { height: 54px; }
-    .appr-annex-title { text-align:center; font-weight:700; margin-bottom:10px; }
-    .appr-table { width:100%; border-collapse:collapse; font-size:9.5pt; }
-    .appr-table td { border:1px solid #000; padding:3.5px 7px; vertical-align:middle; }
-    .appr-table .num { text-align:center; width:90px; }
-    .appr-table .b td, .appr-table td.b { font-weight:700; }
-    .appr-table .blank td { height:7px; padding:0; }
-    .appr-note { margin-left:28px; font-style:italic; margin-top:6px; }
-    .appr-note li { margin-bottom:3px; }
-    .appr-footer { margin-top:auto; }
-    .appr-bar { display:flex; height:10px; margin-top:18px; }
-    .appr-bar span { flex:1; }
-    .appr-finfo { text-align:center; padding:9px 0 13px; }
-    .appr-fcompany { font-size:13.5pt; font-weight:700; letter-spacing:.2px; margin-bottom:3px; }
-    .appr-faddr { font-size:8pt; color:#222; margin-bottom:2px; }
-    .appr-fcin { font-size:8pt; color:#1565c0; }
-  </style>`
-
-/** Bump when the stock template markup changes so existing assigned documents
- *  get auto-upgraded (see migrations in people.store / templates.store). */
-export const APPRAISAL_TPL_REV = '5'
-
-export const DEFAULT_APPRAISAL_HTML = `
-<div class="appr-doc" data-tpl-rev="${APPRAISAL_TPL_REV}">
-${STYLES}
-
-  <!-- ───────────────────────── PAGE 1 — Cover Letter ───────────────────────── -->
-  <div class="appr-page">
-    <div class="appr-logo">${MTAP_LOGO}</div>
-    <div class="appr-body">
+const PAGE_1 = page(`
       <div class="appr-ref">
         <p>Ref: PA/{{REF_NUMBER}}</p>
         <p>Date: {{DATE}}</p>
@@ -102,15 +40,9 @@ ${STYLES}
           <p><strong>Srinivas Chitturi</strong></p>
           <p>CEO</p>
         </div>
-      </div>
-    </div>
-    ${FOOTER}
-  </div>
+      </div>`)
 
-  <!-- ───────────────────────── PAGE 2 — Annexure 1 ───────────────────────── -->
-  <div class="appr-page">
-    <div class="appr-logo">${MTAP_LOGO}</div>
-    <div class="appr-body">
+const PAGE_2 = page(`
       <p class="appr-annex-title">Annexure 1: Compensation Details (Salary &amp; applicable benefits)</p>
       <div class="appr-emp">
         <p>Name: {{EMPLOYEE_NAME}}</p>
@@ -150,15 +82,9 @@ ${STYLES}
         <tr class="b"><td colspan="3">Bonus</td></tr>
         <tr><td>Performance Bonus</td><td class="num"></td><td class="num">{{PERFORMANCE_BONUS_ANNUAL}}</td></tr>
         <tr class="b"><td>Total Bonus</td><td class="num"></td><td class="num">{{TOTAL_BONUS_ANNUAL}}</td></tr>
-      </table>
-    </div>
-    ${FOOTER}
-  </div>
+      </table>`)
 
-  <!-- ───────────────────────── PAGE 3 — Bonus & Notes ───────────────────────── -->
-  <div class="appr-page">
-    <div class="appr-logo">${MTAP_LOGO}</div>
-    <div class="appr-body">
+const PAGE_3 = page(`
       <p class="appr-para">
         <strong>Performance Bonus:</strong> You will be eligible for Annual Performance Bonus which is linked to Company and
         individual performance. The bonus is paid on an annual basis and is payable at the end of the financial year.
@@ -169,10 +95,6 @@ ${STYLES}
       <ul class="appr-note">
         <li>Other Statutory Deductions as applicable from time to time</li>
         <li>Income Tax and Professional Tax applicable as per norm</li>
-      </ul>
-    </div>
-    ${FOOTER}
-  </div>
+      </ul>`)
 
-</div>
-`
+export const DEFAULT_APPRAISAL_HTML = wrapDoc(`${PAGE_1}\n${PAGE_2}\n${PAGE_3}`)

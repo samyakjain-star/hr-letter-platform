@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 import type { Template, TemplateVersion, TemplatesStore } from '../types'
-import { DEFAULT_APPRAISAL_HTML, APPRAISAL_TPL_REV } from '../lib/defaultTemplate'
+import { STOCK_TEMPLATES } from '../lib/stockTemplates'
+import { STOCK_TPL_REV } from '../lib/templateShared'
 
-const REV_MARKER = `data-tpl-rev="${APPRAISAL_TPL_REV}"`
+const REV_MARKER = `data-tpl-rev="${STOCK_TPL_REV}"`
+const STOCK_IDS = new Set(STOCK_TEMPLATES.map(t => t.id))
 
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
@@ -23,28 +25,27 @@ interface Actions {
   getLatestVersion: (id: string) => TemplateVersion | null
 }
 
-const SEED_TEMPLATE: Template = {
-  id: 'appraisal_letter',
-  name: 'Appraisal Letter',
-  currentVersion: 1,
-  versions: [{
-    version: 1,
-    savedAt: new Date().toISOString().split('T')[0],
-    subject: 'Your Appraisal Letter — {{EMPLOYEE_NAME}}',
-    html: DEFAULT_APPRAISAL_HTML,
-    variables: [
-      'EMPLOYEE_NAME', 'EMPLOYEE_ID', 'DESIGNATION', 'DIVISION', 'GRADE',
-      'DATE', 'REF_NUMBER', 'PERFORMANCE_RATING', 'NEW_CTC', 'NEW_CTC_FORMATTED',
-      'EFFECTIVE_DATE', 'BASIC_MONTHLY', 'BASIC_ANNUAL', 'HRA_MONTHLY', 'HRA_ANNUAL',
-      'SPECIAL_ALLOWANCE_MONTHLY', 'SPECIAL_ALLOWANCE_ANNUAL', 'LTA_MONTHLY', 'LTA_ANNUAL',
-      'VEHICLE_MONTHLY', 'VEHICLE_ANNUAL', 'DRIVER_MONTHLY', 'DRIVER_ANNUAL',
-      'TELEPHONE_MONTHLY', 'TELEPHONE_ANNUAL', 'FOOD_MONTHLY', 'FOOD_ANNUAL',
-      'FIXED_CTC_MONTHLY', 'FIXED_CTC_ANNUAL', 'PF_MONTHLY', 'PF_ANNUAL',
-      'SUBTOTAL_MONTHLY', 'SUBTOTAL_ANNUAL', 'TOTAL_FIXED_CTC_MONTHLY', 'TOTAL_FIXED_CTC_ANNUAL',
-      'NET_MONTHLY_CREDIT_MONTHLY', 'NET_MONTHLY_CREDIT_ANNUAL',
-      'PERFORMANCE_BONUS_ANNUAL', 'TOTAL_BONUS_ANNUAL'
-    ]
-  }]
+/** Merge the stock templates into whatever is stored: add any that are
+ *  missing, and refresh any stock template whose markup pre-dates the current
+ *  revision. User-created templates are left untouched. */
+function mergeStockTemplates(stored: Template[]): { templates: Template[]; changed: boolean } {
+  let changed = false
+  const templates = stored.map(t => {
+    if (!STOCK_IDS.has(t.id)) return t
+    const latest = t.versions.find(v => v.version === t.currentVersion)
+    if (latest && !latest.html.includes(REV_MARKER)) {
+      changed = true
+      return STOCK_TEMPLATES.find(s => s.id === t.id) ?? t
+    }
+    return t
+  })
+  for (const stock of STOCK_TEMPLATES) {
+    if (!templates.some(t => t.id === stock.id)) {
+      templates.push(stock)
+      changed = true
+    }
+  }
+  return { templates, changed }
 }
 
 export const useTemplatesStore = create<State & Actions>((set, get) => ({
@@ -55,22 +56,12 @@ export const useTemplatesStore = create<State & Actions>((set, get) => ({
     set({ loading: true })
     try {
       const data = await window.electronAPI.readTemplates()
-      let templates = data.templates?.length ? data.templates : [SEED_TEMPLATE]
-      let needsSave = !data.templates?.length
-
-      // Migration: refresh the stock Appraisal Letter when an older template
-      // revision is stored (3-page layout, logo & PDF paging fixes).
-      const seed = templates.find(t => t.id === 'appraisal_letter')
-      const seedLatest = seed?.versions.find(v => v.version === seed.currentVersion)
-      if (seed && seedLatest && !seedLatest.html.includes(REV_MARKER)) {
-        templates = templates.map(t => t.id === 'appraisal_letter' ? SEED_TEMPLATE : t)
-        needsSave = true
-      }
-
+      const { templates, changed } = mergeStockTemplates(data.templates ?? [])
+      const needsSave = changed || !data.templates?.length
       set({ templates, loading: false })
       if (needsSave) get()._save(templates)
     } catch {
-      set({ templates: [SEED_TEMPLATE], loading: false })
+      set({ templates: STOCK_TEMPLATES, loading: false })
     }
   },
 

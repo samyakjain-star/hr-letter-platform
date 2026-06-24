@@ -1,4 +1,5 @@
 import React from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { Users, Settings, RefreshCw, Download, Check, AlertCircle } from 'lucide-react'
 import { useSettingsStore } from '../../store/settings.store'
 
@@ -27,7 +28,7 @@ const LOGO_SVG = (
   </svg>
 )
 
-const TABS: { id: Tab; label: string; Icon: React.FC<{ size: number }> }[] = [
+const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'editor',   label: 'People & Letters', Icon: Users },
   { id: 'settings', label: 'Settings',         Icon: Settings },
 ]

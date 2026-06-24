@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { X, Zap } from 'lucide-react'
 import { calculate, formatINR, toLetterFields, DEFAULT_CALC_CONFIG } from '../../lib/calculator'
+import type { CalcResult } from '../../lib/calculator'
 
 interface Props {
   onAutoFill: (fields: Record<string, string>) => void
@@ -31,7 +32,7 @@ export default function SalaryCalculator({ onAutoFill, onClose }: Props) {
 
   const rs = (n: number) => n === 0 ? '—' : '₹' + formatINR(n)
 
-  const rows: Array<{ label: string; key: keyof typeof result; bold?: boolean; indent?: boolean }> = [
+  const rows: Array<{ label: string; key: keyof CalcResult; bold?: boolean; indent?: boolean }> = [
     { label: 'Basic Salary', key: 'basic', indent: true },
     { label: 'HRA', key: 'hra', indent: true },
     { label: 'Statutory Bonus', key: 'statutoryBonus', indent: true },

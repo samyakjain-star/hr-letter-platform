@@ -7,7 +7,6 @@ import AssignDocModal from './components/layout/AssignDocModal'
 import DocumentCanvas from './pages/editor/DocumentCanvas'
 import SalaryCalculator from './pages/editor/SalaryCalculator'
 import TemplateEditor from './pages/editor/TemplateEditor'
-import MailerPage from './pages/mailer/index'
 import SettingsPage from './pages/settings/index'
 import { usePeopleStore } from './store/people.store'
 import { useTemplatesStore } from './store/templates.store'
@@ -17,7 +16,7 @@ import { buildSystemFields, mergeFields, resolveVariables } from './lib/variable
 import { toLetterFields } from './lib/calculator'
 import type { Person } from './types'
 
-type MainTab = 'editor' | 'mailer' | 'settings'
+type MainTab = 'editor' | 'settings'
 type LeftTab = 'people' | 'templates'
 
 export default function App() {
@@ -125,6 +124,7 @@ export default function App() {
             onNewPerson={() => setShowNewPerson(true)}
             onAssignDoc={handleAssignDoc}
             onDeletePerson={people.deletePerson}
+            onDeleteDoc={people.deleteDoc}
             onNewTemplate={() => { setEditingTemplateId(null); setShowTemplateEditor(true) }}
             onEditTemplate={id => { setEditingTemplateId(id); setShowTemplateEditor(true) }}
             onDeleteTemplate={templates.deleteTemplate}
@@ -167,7 +167,6 @@ export default function App() {
           </div>
         )}
 
-        {mainTab === 'mailer' && <MailerPage />}
         {mainTab === 'settings' && <SettingsPage />}
       </div>
 

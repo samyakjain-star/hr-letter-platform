@@ -1,7 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { join } from 'path'
 import { registerStorageHandlers } from './ipc/storage.ipc'
-import { registerMailHandlers } from './ipc/mail.ipc'
 import { registerUpdaterHandlers } from './ipc/updater.ipc'
 import { registerPdfHandlers } from './ipc/pdf.ipc'
 
@@ -19,7 +18,9 @@ function createWindow(): void {
     backgroundColor: '#071426',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
+      // Hardened: full OS-process sandbox. The preload only uses ipcRenderer +
+      // contextBridge, both supported under the sandbox, so nothing breaks.
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
     }
@@ -29,9 +30,18 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Only ever hand https URLs to the OS shell. Without this, an injected
+  // window.open() could pass file:// or a custom protocol handler to the OS.
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (/^https:\/\//i.test(details.url)) shell.openExternal(details.url)
     return { action: 'deny' }
+  })
+
+  // Block in-app navigation away from the app (e.g. injected links/forms).
+  mainWindow.webContents.on('will-navigate', (e, url) => {
+    const isDevServer = !app.isPackaged && process.env['ELECTRON_RENDERER_URL'] &&
+      url.startsWith(process.env['ELECTRON_RENDERER_URL'])
+    if (!isDevServer) e.preventDefault()
   })
 
   if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
@@ -52,7 +62,6 @@ app.whenReady().then(() => {
 
   // Register all IPC handlers
   registerStorageHandlers(ipcMain)
-  registerMailHandlers(ipcMain, () => mainWindow)
   registerUpdaterHandlers(ipcMain)
   registerPdfHandlers(ipcMain)
 

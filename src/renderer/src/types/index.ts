@@ -43,17 +43,9 @@ export interface TemplateVersion {
 // ─── Settings ──────────────────────────────────────────────────────────────
 
 export interface Settings {
-  smtp: SmtpConfig
   calculator: CalculatorConfig
   appVersion: string
   pdfFilenamePattern: string
-}
-
-export interface SmtpConfig {
-  email: string
-  appPassword: string
-  host: string
-  port: number
 }
 
 /** New Wage Code 2026 — matches MTAP CTC_Calculator_ for Validation (1).html */
@@ -89,38 +81,6 @@ export interface CalculatorResult {
   totalBonus: number
 }
 
-// ─── Mailer ────────────────────────────────────────────────────────────────
-
-export interface ExcelRow {
-  [key: string]: string
-}
-
-export interface Recipient {
-  rowIndex: number
-  to: string
-  data: ExcelRow
-  selected: boolean
-  status: 'pending' | 'sending' | 'sent' | 'failed'
-  error?: string
-}
-
-export interface MailJob {
-  rowIndex: number
-  to: string
-  cc?: string
-  bcc?: string
-  subject: string
-  html: string
-  attachmentName?: string
-  attachmentBase64?: string
-}
-
-export interface SendProgress {
-  rowIndex: number
-  status: 'sent' | 'failed'
-  error?: string
-}
-
 // ─── IPC API surface (matches preload contextBridge) ───────────────────────
 
 export interface PeopleStore { people: Person[] }
@@ -131,9 +91,4 @@ export interface UpdateInfo {
   version?: string
   changelog?: string
   downloadUrl?: string
-}
-
-export interface ConnectionTestResult {
-  ok: boolean
-  error?: string
 }

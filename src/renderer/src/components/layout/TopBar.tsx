@@ -1,7 +1,8 @@
 import React from 'react'
-import { Users, Mail, Settings } from 'lucide-react'
+import { Users, Settings, RefreshCw, Download, Check, AlertCircle } from 'lucide-react'
+import { useSettingsStore } from '../../store/settings.store'
 
-type Tab = 'editor' | 'mailer' | 'settings'
+type Tab = 'editor' | 'settings'
 
 interface Props {
   activeTab: Tab
@@ -28,9 +29,76 @@ const LOGO_SVG = (
 
 const TABS: { id: Tab; label: string; Icon: React.FC<{ size: number }> }[] = [
   { id: 'editor',   label: 'People & Letters', Icon: Users },
-  { id: 'mailer',   label: 'Mailer',           Icon: Mail },
   { id: 'settings', label: 'Settings',         Icon: Settings },
 ]
+
+/** Checks GitHub for a newer release. When one exists, the button turns into a
+ *  green "Update to vX.Y.Z" action that opens the release download page. */
+function UpdateButton() {
+  const updateInfo = useSettingsStore(s => s.updateInfo)
+  const updateLoading = useSettingsStore(s => s.updateLoading)
+  const checkForUpdates = useSettingsStore(s => s.checkForUpdates)
+
+  const hasUpdate = !!updateInfo?.hasUpdate
+  // The store reports errors via updateInfo with no `version` field.
+  const isError = !!updateInfo && !updateInfo.hasUpdate && !updateInfo.version
+  const isUpToDate = !!updateInfo && !updateInfo.hasUpdate && !!updateInfo.version
+
+  let label = 'Check for updates'
+  let Icon = RefreshCw
+  let color = 'rgba(255,255,255,0.6)'
+  let bg = 'rgba(255,255,255,0.06)'
+  let border = 'rgba(255,255,255,0.12)'
+
+  if (updateLoading) {
+    label = 'Checking…'
+  } else if (hasUpdate) {
+    label = `Update to v${updateInfo!.version}`
+    Icon = Download
+    color = '#fff'
+    bg = '#43A047'
+    border = '#43A047'
+  } else if (isUpToDate) {
+    label = 'Up to date'
+    Icon = Check
+    color = '#43A047'
+    bg = 'rgba(67,160,71,0.12)'
+    border = 'rgba(67,160,71,0.3)'
+  } else if (isError) {
+    label = 'Check failed — retry'
+    Icon = AlertCircle
+    color = '#E53935'
+    bg = 'rgba(229,57,53,0.12)'
+    border = 'rgba(229,57,53,0.3)'
+  }
+
+  const onClick = () => {
+    if (updateLoading) return
+    if (hasUpdate && updateInfo?.downloadUrl) {
+      window.open(updateInfo.downloadUrl, '_blank') // main opens it externally
+    } else {
+      checkForUpdates()
+    }
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={updateLoading}
+      title={hasUpdate ? updateInfo?.changelog || 'Open the download page' : 'Check GitHub for a newer version'}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px',
+        background: bg, border: `1px solid ${border}`, borderRadius: 6,
+        color, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+        cursor: updateLoading ? 'default' : 'pointer', transition: 'all 0.15s',
+        flexShrink: 0
+      }}
+    >
+      <Icon size={13} style={updateLoading ? { animation: 'spin 1s linear infinite' } : undefined} />
+      {label}
+    </button>
+  )
+}
 
 export default function TopBar({ activeTab, onTabChange, personName, docName }: Props) {
   return (
@@ -85,8 +153,8 @@ export default function TopBar({ activeTab, onTabChange, personName, docName }: 
         })}
       </nav>
 
-      {/* Breadcrumb */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', WebkitAppRegion: 'no-drag' as never }}>
+      {/* Breadcrumb + update button (right aligned) */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 14, WebkitAppRegion: 'no-drag' as never }}>
         {personName && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, maxWidth: 280, overflow: 'hidden' }}>
             <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -102,7 +170,10 @@ export default function TopBar({ activeTab, onTabChange, personName, docName }: 
             )}
           </div>
         )}
+        <UpdateButton />
       </div>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </header>
   )
 }

@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
-  PeopleStore, TemplatesStore, Settings, SmtpConfig,
-  MailJob, SendProgress, UpdateInfo, ConnectionTestResult
+  PeopleStore, TemplatesStore, Settings, UpdateInfo
 } from '../renderer/src/types'
 
 const api = {
@@ -14,18 +13,6 @@ const api = {
 
   readSettings:  (): Promise<Settings>      => ipcRenderer.invoke('storage:read-settings'),
   writeSettings: (d: Settings): Promise<void> => ipcRenderer.invoke('storage:write-settings', d),
-
-  // ── Mail ─────────────────────────────────────────────────────
-  testConnection: (cfg: SmtpConfig): Promise<ConnectionTestResult> =>
-    ipcRenderer.invoke('mail:test-connection', cfg),
-
-  sendBatch: (cfg: SmtpConfig, jobs: MailJob[]): Promise<void> =>
-    ipcRenderer.invoke('mail:send-batch', cfg, jobs),
-
-  onSendProgress: (cb: (p: SendProgress) => void) => {
-    ipcRenderer.on('mail:send-progress', (_e, p) => cb(p))
-    return () => ipcRenderer.removeAllListeners('mail:send-progress')
-  },
 
   // ── Updater ──────────────────────────────────────────────────
   checkForUpdates: (currentVersion: string): Promise<UpdateInfo> =>

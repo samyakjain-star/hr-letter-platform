@@ -16,6 +16,7 @@ interface Props {
   onNewPerson: () => void
   onAssignDoc: (personId: string) => void
   onDeletePerson: (id: string) => void
+  onDeleteDoc: (personId: string, docId: string) => void
   onNewTemplate: () => void
   onEditTemplate: (id: string) => void
   onDeleteTemplate: (id: string) => void
@@ -107,39 +108,67 @@ export default function LeftPanel(props: Props) {
                       ? <ChevronDown size={14} color="#6b85a8" />
                       : <ChevronRight size={14} color="#6b85a8" />
                     }
-                    {!isExpanded && (
-                      <button
-                        onClick={e => { e.stopPropagation(); props.onDeletePerson(person.id) }}
-                        title="Delete person"
-                        style={{ padding: 3, background: 'none', border: 'none', cursor: 'pointer', color: '#6b85a8', opacity: 0, transition: 'opacity 0.15s', borderRadius: 4 }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; (e.currentTarget as HTMLButtonElement).style.color = '#E53935' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0'; (e.currentTarget as HTMLButtonElement).style.color = '#6b85a8' }}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    )}
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        const docCount = person.documents.length
+                        const extra = docCount > 0 ? ` and ${docCount} document${docCount > 1 ? 's' : ''}` : ''
+                        if (window.confirm(`Delete ${person.name}${extra}? This cannot be undone.`)) {
+                          props.onDeletePerson(person.id)
+                        }
+                      }}
+                      title="Delete person"
+                      style={{ display: 'flex', padding: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#6b7f9e', opacity: 0.7, transition: 'all 0.15s', borderRadius: 4, flexShrink: 0 }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; (e.currentTarget as HTMLButtonElement).style.color = '#E53935'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(229,57,53,0.12)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.7'; (e.currentTarget as HTMLButtonElement).style.color = '#6b7f9e'; (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
 
                   {/* Document list */}
                   {isExpanded && (
                     <div style={{ borderLeft: '2px solid rgba(30,136,229,0.2)', marginLeft: 20, paddingLeft: 8 }}>
-                      {person.documents.map(doc => (
-                        <div
-                          key={doc.docId}
-                          onClick={() => props.onSelectDoc(person.id, doc.docId)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
-                            borderRadius: 6, cursor: 'pointer',
-                            color: activeDoc?.docId === doc.docId ? '#1E88E5' : '#8fa0b8',
-                            transition: 'all 0.1s'
-                          }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
-                        >
-                          <FileText size={12} />
-                          <span style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
-                        </div>
-                      ))}
+                      {person.documents.map(doc => {
+                        const docActive = activeDoc?.docId === doc.docId
+                        return (
+                          <div
+                            key={doc.docId}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 4, borderRadius: 6,
+                              transition: 'all 0.1s'
+                            }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+                          >
+                            <div
+                              onClick={() => props.onSelectDoc(person.id, doc.docId)}
+                              style={{
+                                flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 6,
+                                padding: '5px 8px', cursor: 'pointer',
+                                color: docActive ? '#1E88E5' : '#8fa0b8'
+                              }}
+                            >
+                              <FileText size={12} style={{ flexShrink: 0 }} />
+                              <span style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
+                            </div>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (window.confirm(`Delete document "${doc.name}"? This cannot be undone.`)) {
+                                  props.onDeleteDoc(person.id, doc.docId)
+                                }
+                              }}
+                              title="Delete document"
+                              style={{ display: 'flex', padding: 4, marginRight: 4, background: 'none', border: 'none', cursor: 'pointer', color: '#6b7f9e', opacity: 0.7, transition: 'all 0.15s', borderRadius: 4, flexShrink: 0 }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; (e.currentTarget as HTMLButtonElement).style.color = '#E53935'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(229,57,53,0.12)' }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.7'; (e.currentTarget as HTMLButtonElement).style.color = '#6b7f9e'; (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        )
+                      })}
                       <button
                         onClick={() => props.onAssignDoc(person.id)}
                         style={{
